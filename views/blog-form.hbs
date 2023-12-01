@@ -1,0 +1,15 @@
+<form action="/add-blog" method="POST">
+  <label for="title">Title:</label>
+  <input type="text" id="title" name="title" required>
+
+  <label for="content">Content:</label>
+  <textarea id="content" name="content" rows="4" required></textarea>
+
+  <label for="author">Author:</label>
+  <input type="text" id="author" name="author" required>
+
+  <!-- Automatically generate the createdAt field when the user submits the form -->
+  <input type="hidden" id="createdAt" name="createdAt" value="{{getCurrentTime}}">
+
+  <button type="submit">Submit</button>
+</form>

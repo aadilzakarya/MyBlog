@@ -1,41 +1,38 @@
 // db.mjs
 import mongoose from 'mongoose';
-import {config} from 'dotenv';
-
-// Uncomment the following line to debug the value of the database connection string.
-
+import { config } from 'dotenv';
+import passportLocalMongoose from 'passport-local-mongoose';
 config();
 
 console.log(process.env.DSN);
 
-// Define your Mongoose schema for the reviews
-const reviewSchema = new mongoose.Schema({
-  courseNumber: { type: String, required: true },
-  courseName: { type: String, required: true },
-  semester: { type: String, required: true },
-  year: { type: Number, required: true },
-  professor: { type: String, required: true },
-  review: { type: String, required: true },
-});
-
-// Create a Mongoose model using the schema
-const Review = mongoose.model('Review', reviewSchema);
-
-// Define any Mongoose connection options here.
-const mongooseOpts = {
+mongoose.connect(process.env.DSN, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-};
+});
 
-// // Connect to the MongoDB database using the DSN from your .env file.
-mongoose
-  .connect(process.env.DSN, mongooseOpts)
-  .then(() => {
-    console.log('Connected to the database');
-  })
-  .catch((err) => {
-    console.error('Failed to connect to the database:', err);
-  });
+const { Schema } = mongoose;
 
-// Export the Mongoose instance and the Review model for use in other parts of your application.
-export { mongoose, Review };
+// Define the Article schema
+const articleSchema = new Schema({
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  author: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+
+
+const User = new Schema({
+  username: String,
+  password: String
+});
+
+
+User.plugin(passportLocalMongoose);
+
+const UserData = mongoose.model('userData', User, 'userData');
+
+const Article = mongoose.model('Article', articleSchema);
+
+export { Article, UserData };

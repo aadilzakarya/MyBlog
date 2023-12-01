@@ -1,29 +1,22 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-		<title></title>
-		<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Extra+Condensed" rel="stylesheet">
-
-		<link rel="stylesheet" href="/stylesheets/style.css" type="text/css" media="screen" title="no title" charset="utf-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog</title>
+  <link rel="stylesheet" href="/styles/styles.css"> <!-- Adjust the path based on your project structure -->
 </head>
 <body>
-<style>
-</style>
-<div id="container">
-	<header>
-			<h1><span>AIT</span>Y-THREE ISSA B</h1>
-			<h3>An anonymous course review site.</h3>
-	</header>
-	<nav>
-		<ul>
-			<li><a href="/">All reviews</a></li>
-			<li><a href="/reviews/mine">My reviews</a></li>
-			<li><a href="/reviews/add">Add review!</a></li>
-		</ul>
-		<div class="about-session">Your session's total page visits: {{ count }} </div>
-	</nav>
-	<div id="content">
-		{{{ body }}}
-	</div>
-</div>
+  <header>
+    <h1>My Blog</h1>
+  </header>
+
+  <main>
+    {{{ body }}} <!-- This is where the content of each page will be inserted -->
+  </main>
+
+  <footer>
+    <p>&copy; 2023 My Blog</p>
+  </footer>
 </body>
 </html>
