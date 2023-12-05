@@ -21,19 +21,19 @@ app.use(session({
   secret: 'r8q,+&1LM3)CD*zAGpx1xm{NeQhc;#',
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 60 * 60 * 1000 } // 1 hour
+  cookie: { maxAge: 60 * 60 * 1000 } 
 }));
 
-// Configure More Middleware
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
 
-// Passport Local Strategy
+
 passport.use(UserData.createStrategy());
 
-// To use with sessions
+
 passport.serializeUser(UserData.serializeUser());
 passport.deserializeUser(UserData.deserializeUser());
 
@@ -47,7 +47,7 @@ app.use(express.urlencoded({ extended: false }));
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, 'public')));
-// Middleware to parse form data
+
 
 
 
@@ -55,11 +55,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.get('/dashboard', connectEnsureLogin.ensureLoggedIn(), async(req, res) => {
-  // res.send(`Hello ${req.user.username}. Your session ID is ${req.sessionID} 
-  //  and your session expires in ${req.session.cookie.maxAge} 
-  //  milliseconds.<br><br>
-  //  <a href="/logout">Log Out</a><br><br>
-  //  <a href="/secret">Members Only</a>`);
+ 
    const articles = await Article.find().sort({ createdAt: 'desc' });
    const username = req.user.username;
 
@@ -69,9 +65,6 @@ app.get('/dashboard', connectEnsureLogin.ensureLoggedIn(), async(req, res) => {
     console.log(readingTime);
     return `${readingTime} min read`;
     });
-
-
-
 
 
    
@@ -265,7 +258,7 @@ app.get('/dashboard/search', connectEnsureLogin.ensureLoggedIn(), async (req, re
 
 
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT ??3000, () => {
   console.log('Server is running on port 8080');
 });
 
