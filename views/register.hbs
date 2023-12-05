@@ -10,9 +10,9 @@
             <div class="col-md-6 offset-md-3">
                 <h2 class="mt-5">Register</h2>
 
-                <!-- Display error message if any -->
+
                 {{#if errorMessage}}
-                    <div class="alert alert-danger">{{errorMessage}}</div>
+                    <div class="alert alert-danger" id="error-message" >{{errorMessage}}</div>
                 {{/if}}
 
                 <form action="/register" method="POST">

@@ -1,10 +1,13 @@
 body {
 	font-family: 'Fira Sans Extra Condensed', sans-serif;
+	
 }
 
 h1 {
   text-align: center;
 }
+
+
 
 header {
 	text-align: center; /* Center-align the content */
@@ -136,4 +139,7 @@ form {
 	padding: 10px;
 	text-align: center;
   }
+
+
+
   

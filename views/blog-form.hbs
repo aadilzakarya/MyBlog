@@ -1,15 +1,38 @@
-<form action="/add-blog" method="POST">
-  <label for="title">Title:</label>
-  <input type="text" id="title" name="title" required>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Blog</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <h2 class="mt-5">Add Blog</h2>
 
-  <label for="content">Content:</label>
-  <textarea id="content" name="content" rows="4" required></textarea>
 
-  <label for="author">Author:</label>
-  <input type="text" id="author" name="author" required>
+                <form action="/add-blog" method="POST">
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
 
-  <!-- Automatically generate the createdAt field when the user submits the form -->
-  <input type="hidden" id="createdAt" name="createdAt" value="{{getCurrentTime}}">
+                    <div class="form-group">
+                        <label for="content">Content:</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
 
-  <button type="submit">Submit</button>
-</form>
+                    <input type="hidden" name="author" value="{{username}}">
+                    <input type="hidden" id="createdAt" name="createdAt" value="{{getCurrentTime}}">
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

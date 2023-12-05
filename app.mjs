@@ -1,10 +1,13 @@
 // app.mjs
+import './config.mjs';
 import express from 'express';
 
 import bodyParser from 'body-parser'; // parser middleware
 import session from 'express-session'; // session middleware
 import passport from 'passport'; // authentication
 import LocalStrategy from 'passport-local';
+
+
 
 import connectEnsureLogin from 'connect-ensure-login'; // authorization
 
@@ -26,6 +29,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 // Passport Local Strategy
 passport.use(UserData.createStrategy());
 
@@ -40,13 +44,14 @@ app.use(express.urlencoded({ extended: false }));
 
 
 
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, 'public')));
 // Middleware to parse form data
 
 
 
-app.set('view engine', 'hbs'); // You can use any template engine you prefer
+app.set('view engine', 'hbs'); 
 app.set('views', path.join(__dirname, 'views'));
 
 app.get('/dashboard', connectEnsureLogin.ensureLoggedIn(), async(req, res) => {
@@ -56,8 +61,21 @@ app.get('/dashboard', connectEnsureLogin.ensureLoggedIn(), async(req, res) => {
   //  <a href="/logout">Log Out</a><br><br>
   //  <a href="/secret">Members Only</a>`);
    const articles = await Article.find().sort({ createdAt: 'desc' });
+   const username = req.user.username;
 
-   res.render('blogs', {articles})
+   let readingTimes = articles.map(article => {
+    const wordCount = article.content.split(' ').length;
+    const readingTime = Math.ceil(wordCount / 50); // Assuming 50 words per minute (obviously wrong)
+    console.log(readingTime);
+    return `${readingTime} min read`;
+    });
+
+
+
+
+
+   
+   res.render('blogs', {articles, username, readingTimes})
 });
 
 app.get('/logout', function(req, res) {
@@ -88,20 +106,17 @@ app.post('/register', async (req, res) => {
   try {
       // Check if the user already exists
       const existingUser = await UserData.findOne({ username });
-      if (existingUser) {
+      if (existingUser) {         
           res.render('register', { errorMessage: 'Username already exists.' });
           return;
       }
+      else{
+        UserData.register({ username: username, active: false }, password);
+        console.log(UserData);
+        res.render('login',);
+      }
 
-      UserData.register({ username: username, active: false }, password);
-      console.log(UserData);
-
-      // If user doesn't exist, create a new user
-      // const newUser = new UserData({ username, password });
-      // await newUser.save(); // Make sure to hash the password if you're not doing it in your user model
-      // console.log(newUser.username);
-      // Redirect to login or another page upon successful registration
-      res.redirect('/login');
+      
   } catch (error) {
       console.error('Registration error:', error);
       res.render('register', { errorMessage: 'Error during registration.' });
@@ -118,6 +133,7 @@ app.get('/login', function(req, res) {
 
 app.post('/login', passport.authenticate('local', { failureRedirect: '/login' }),  function(req, res) {
 	console.log(req.user)
+  // let currrentUser = req.user.username; 
 	res.redirect('/dashboard');
 });
 
@@ -126,24 +142,70 @@ app.get('/blogs', async (req, res) => {
     // Retrieve all articles from the database
     const articles = await Article.find().sort({ createdAt: 'desc' });
     console.log(articles);
-    res.render('home', { articles });
+
+    const transformedArticles = articles.map(article => ({
+      ...article.toObject(),
+      content: articleTransformationPipeline(article.content)
+    }));
+
+
+
+
+
+    res.render('home', { transformedArticles  });
   } catch (error) {
     console.error('Error handling articles:', error);
     res.status(500).send('Internal server error');
   }
 });
 
-app.get('/add-blog', (req, res) => {
-  res.render('blog-form'); // Assuming you have a view named 'blog-form'
+
+
+app.get('/add-blog', connectEnsureLogin.ensureLoggedIn(), (req, res) => {
+  // Assuming the user object contains a username field
+  const username = req.user.username; 
+  res.render('blog-form', { username: username });
 });
 
-// POST route to handle form submission
+
+app.get('/contact-us', connectEnsureLogin.ensureLoggedIn(), (req, res) => {
+
+
+  res.render('contact-us');
+});
+
+
+app.post('/contact-us', (req, res) => {
+  // Extracting form data from the request body
+  const { name, email, subject, message } = req.body;
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+    // Check if the email is in the correct format
+    if (!emailRegex.test(email)) {
+        return res.send('Invalid email format.');
+    }
+
+  // Log the form data to the console (for demonstration purposes)
+  console.log('Contact form submission:', name, email, subject, message);
+
+  // Placeholder for processing the data
+  // Example: Save the data to a database
+  // Database.saveContactForm({ name, email, subject, message });
+
+  // Example: Send an email
+  // EmailService.sendEmail({ to: 'your@email.com', subject, text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}` });
+
+  // Send a response back to the client
+  // You can render a success page, or redirect to a thank you page, etc.
+  // For now, we will just send a simple text response.
+  res.send('Thank you for your message! We will get back to you soon.');
+});
+
+
 app.post('/add-blog', async (req, res) => {
   try {
-    console.log("TRIAL HERE: ", req.body);
-    // Extract data from the form submission
-    const { title, content, author } = req.body || {};
-    const createdAt = new Date();
+      const { title, content, author } = req.body || {};
+      const createdAt = new Date();
 
     // Create a new Article instance with the form data
     const newArticle = new Article({
@@ -157,26 +219,59 @@ app.post('/add-blog', async (req, res) => {
     await newArticle.save();
 
     // Redirect to the home page or wherever you want to go after submission
-    res.redirect('/');
+    res.redirect('/dashboard');
+
+      // Rest of the form handling logic
   } catch (error) {
     console.error('Error adding a blog:', error);
     res.status(500).json({ error: 'Internal server error' });
+      // Error handling
+  }
+});
+
+app.get('/my-profile', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+  try {
+      // Assuming 'author' field in 'Article' model is the username
+      const articles = await Article.find({ author: req.user.username }).sort({ createdAt: -1 });
+      res.render('my-profile', { articles: articles });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Error fetching articles');
   }
 });
 
 
 
-app.listen( 8080, () => {
-  console.log('Server is running on port 8080');
+app.get('/dashboard/search', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+  const searchTerm = req.query.searchTerm;
+  const username = req.user.username;
+  try {
+      let articles = await Article.find(); // Fetch all articles
+      if (searchTerm) {
+          articles = articles.filter(article =>
+              article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              article.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              article.author.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+      }
+      res.render('blogs', { searchResults: articles, username: username });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Error occurred while searching');
+  }
 });
 
 
 
 
 
+app.listen(process.env.PORT, () => {
+  console.log('Server is running on port 8080');
+});
 
 
 
+export default app;
 
 
 
@@ -225,141 +320,8 @@ app.listen( 8080, () => {
 
 
 
-// import './config.mjs';
 
-// import express from 'express';
-// import session from 'express-session';
-// const app = express();
 
-// import './db.mjs';
 
-// import mongoose from 'mongoose';
-// const Review = mongoose.model('Review');
 
-// // set up express static
 
-// import url from 'url';
-// import path from 'path';
-// const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// // configure templating to hbs
-// app.set('view engine', 'hbs');
-
-// // body parser (req.body)
-// app.use(express.urlencoded({ extended: false }));
-
-// app.use(
-//   session({
-//     secret: 'your-secret-key', // Change this to a  random secret
-//     resave: false,
-//     saveUninitialized: true,
-//   })
-// );
-
-// // Middleware to track page visits
-// app.use((req, res, next) => {
-//   req.session.visitCount = req.session.visitCount ? req.session.visitCount + 1 : 1;
-//   res.locals.visitCount = req.session.visitCount;
-//   console.log("COUNT: ", res.locals.visitCount);
-//   app.locals.count = res.locals.visitCount; 
-//   next();
-// });
-
-
-// app.use((req, res, next) => {
-  
-//   if(!req.session.userReview){
-//     req.session.userReview = [];
-//   }
-//   res.locals.userReview = req.session.userReview;
-//   next();
-// });
-
-
-
-
-// app.get('/', async (req, res) => {
-//   try {
-//     // Get filtering criteria from query string
-//     const { author, title, content  } = req.query;
-
-//     // Build a query object based on form input
-//     const query = {};
-
-//     if (semester) {
-//       query.author = author;
-//     }
-//     if (year) {
-//       query.title = title;
-//     }
-//     if (professor) {
-//       query.content = content;
-//     }
-
-//     // Use Review.find() with the query object to filter reviews or retrieve all reviews
-//     const reviews = await Blog.find(query);
-
-//     // Render the reviews in the template
-//     res.render('reviews', { reviews });
-//   } catch (error) {
-//     console.error('Error handling reviews:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
-
-// // // GET handler for showing the form
-// // app.get('/reviews/add', (req, res) => {
-// //   res.render('add-review'); // Render the form template
-// // });
-
-// // // POST handler for processing form submissions
-// // app.post('/reviews/add', async (req, res) => {
-// //   try {
-// //     // Extract review data from req.body
-// //     const { courseNumber, courseName, semester, year, professor, review } = req.body;
-
-// //     // Create a new review document based on the data
-// //     const newReview = new Review({
-// //       courseNumber,
-// //       courseName,
-// //       semester,
-// //       year,
-// //       professor,
-// //       review,
-// //     });
-
-// //     // Save the new review to the database
-// //     await newReview.save();
-// //     const userReviews = req.session.userReviews || [];
-
-// //   // Add the new review to the user's reviews
-// //   userReviews.push(newReview);
-
-// //   // Update the user's reviews in the session
-// //   req.session.userReviews = userReviews;
-
-// //     // Redirect back to the page that displays all reviews
-// //     // need to add the review to the list 
-// //     res.redirect('/');
-// //   } catch (error) {
-// //     console.error('Error adding a review:', error);
-// //     res.status(500).json({ error: 'Internal server error' });
-// //   }
-// // });
-
-
-// // app.get('/reviews/mine', (req, res) => {
-// //   // Retrieve reviews added by the user during their session
-// //   const userReviews = req.session.userReviews || [];
-// //   console.log(req.session.userReviews);
-// //   //console.log("MEOW: ", userReviews);
-  
-// //   // Render the reviews added by the user in the template
-// //   res.render('my-reviews', { userReviews });
-// // });
-
-
-
-
-// app.listen(process.env.PORT || 3000);
