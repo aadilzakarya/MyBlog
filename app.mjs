@@ -258,9 +258,11 @@ app.get('/dashboard/search', connectEnsureLogin.ensureLoggedIn(), async (req, re
 
 
 
-app.listen(process.env.PORT ??3000, () => {
-  console.log('Server is running on port 8080');
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 3000}`);
 });
+
 
 
 
