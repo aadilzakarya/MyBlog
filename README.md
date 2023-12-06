@@ -9,7 +9,6 @@ To log in:
 - Register a new user or use the provided credentials:
   - **Username:** Leo
   - **Password:** meow
-- Run `add-data.mjs` to upload initial data to the database
 - Execute `node app.mjs` to start the application
 
 ## Forms
